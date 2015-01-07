@@ -1,0 +1,10 @@
+name             'percona_multi'
+maintainer       'Rackspace Hosting, Inc.'
+maintainer_email 'rackspace-cookbooks@rackspace.com'
+license          'Apache 2.0'
+description      'Provides Percona master/slave replication services'
+version          '0.0.1'
+
+depends 'chef-sugar'
+depends 'build-essential'
+depends 'percona'
