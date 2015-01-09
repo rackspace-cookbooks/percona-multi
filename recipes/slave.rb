@@ -24,14 +24,21 @@ include_recipe 'apt' if platform_family?('debian')
 include_recipe 'build-essential'
 include_recipe 'percona::server'
 
-if platform_family?('debian')
-  potentially_at_compile_time do
-    package 'libmysqlclient-dev'
+# mysql gem must be installed at compile time to run replication script, but only on first run
+unless File.exist?("#{node["percona"]["server"]["datadir"]}/.replication")
+  case node['platform_family']
+  when 'debian'
+    potentially_at_compile_time do
+      package 'libmysqlclient-dev'
+    end
+  when 'rhel'
+    potentially_at_compile_time do
+      package 'mysql-devel'
+    end
   end
-end
-
-chef_gem 'mysql' do
-  action :install
+  chef_gem 'mysql' do
+    action :install
+  end
 end
 
 # creates unique serverid via ipaddress to an int
@@ -52,19 +59,21 @@ template "#{node['percona']['server']['includedir']}slave.cnf" do
   notifies :restart, 'service[mysql]', :immediately
 end
 
-# pull data from helper
+# pull data from master, but only on first run
 host = node['percona']['master']
 user = node['percona']['server']['replication']['username']
 passwd = passwords.replication_password
 
-if Chef::Config[:solo]
-  Chef::Log.warn('This only works on a chef server not chef solo.')
-else
-  log, pos = PerconaRep.bininfo(host, user, passwd)
-  node.default['bin_log'] = log
-  node.default['bin_pos'] = pos
-  log "binlog- #{node['bin_log']} and binpos- #{node['bin_pos']}" do
-    level :info
+unless File.exist?("#{node["percona"]["server"]["datadir"]}/.replication")
+  if Chef::Config[:solo]
+    Chef::Log.warn('This only works on a chef server not chef solo.')
+  else
+    log, pos = PerconaRep.bininfo(host, user, passwd)
+    node.default['bin_log'] = log
+    node.default['bin_pos'] = pos
+    log "binlog- #{node['bin_log']} and binpos- #{node['bin_pos']}" do
+      level :info
+    end
   end
 end
 
