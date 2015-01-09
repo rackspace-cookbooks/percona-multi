@@ -1,4 +1,4 @@
-name             'percona_multi'
+name             'percona-multi'
 maintainer       'Rackspace Hosting, Inc.'
 maintainer_email 'rackspace-cookbooks@rackspace.com'
 license          'Apache 2.0'

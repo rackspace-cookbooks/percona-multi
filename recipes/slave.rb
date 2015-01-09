@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: percona_multi
+# Cookbook Name:: percona-multi
 # Recipe:: slave
 #
 # Copyright 2015, Rackspace US, Inc.
