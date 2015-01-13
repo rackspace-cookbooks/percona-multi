@@ -2,6 +2,6 @@
 
 require_relative 'spec_helper'
 
-describe 'default' do
-  it { skip 'write some tests' }
+describe user('mysql') do
+  it { should exist }
 end

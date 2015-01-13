@@ -1,7 +1,7 @@
 class Chef
   class Recipe
+    # Run mysql client, grab binlog and binpos and pass back as variables
     class PerconaRep
-      # Run mysql client, grab binlog and binpos and pass back as variables
       def self.query(host, username, password, query)
         require 'rubygems'
         require 'mysql'
