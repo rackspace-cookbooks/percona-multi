@@ -6,13 +6,16 @@
 # take precedence over anything set in `.kitchen.yml`.
 ################################################################################
 driver:
-  name: vagrant # provide a default test-kitchen driver, vagrant
+  name: vagrant
+  customize:
+    memory: 2048
+    cpus: 2
 
 driver_config:
   require_chef_omnibus: latest
 
 provisioner:
-  name: chef_zero
+  name: chef_solo
   client_rb:
     environment: _default
   attributes:
@@ -39,6 +42,15 @@ provisioner:
       cloud_credentials:
         username: 'racker'
         api_key: 'sekrit'
+    percona:
+      master: '1.2.3.4'
+      slaves: ['5.6.7.8']
+      skip_passwords: true
+      apt_keyserver: 'hkp://keys.gnupg.net'
+      server:
+        includedir: '/etc/mysql/conf.d/'
+        replication:
+          password: 'test123'
 
 platforms:
   - name: ubuntu-14.04
@@ -52,6 +64,10 @@ platforms:
     - recipe[yum]
 
 suites:
-  - name: default
-    run_list: recipe[percona-multi]
+  - name: master
+    run_list: recipe[percona-multi::master]
+    attributes:
+
+  - name: slave
+    run_list: recipe[percona-multi::slave]
     attributes:

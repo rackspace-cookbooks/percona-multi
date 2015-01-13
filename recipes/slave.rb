@@ -18,7 +18,6 @@
 #
 
 node.default['percona']['server']['includedir'] = '/etc/mysql/conf.d/'
-node.default['percona']['server']['role'] = ['slave']
 
 node.default['build-essential']['compile_time'] = true
 node.default['apt']['compile_time_update'] = true
@@ -26,6 +25,15 @@ node.default['apt']['compile_time_update'] = true
 include_recipe 'apt' if platform_family?('debian')
 include_recipe 'build-essential'
 include_recipe 'percona::server'
+
+# adds directory if not created by service (only needed on rhel)
+if platform_family?('rhel')
+  directory '/etc/mysql/conf.d' do
+    owner 'mysql'
+    group 'mysql'
+    action :create
+  end
+end
 
 # mysql gem must be installed at compile time to run replication script, but only on first run
 unless File.exist?("#{node['percona']['server']['datadir']}/.replication")
