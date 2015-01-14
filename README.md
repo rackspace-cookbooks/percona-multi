@@ -21,8 +21,14 @@ within attributes.
 There is no search function within this cookbook. The IP addresses of the master
 and slave nodes must be defined in attributes before it will converge.
 
-Also keep in mind that passwords have to be set via encrypted data bags as outlined
+Keep in mind that passwords have to be set via encrypted data bags as outlined
 in the [percona cookbook] (https://github.com/phlipper/chef-percona#encrypted-passwords)
+
+Other points of note is that the master node must be inline before slave nodes can
+be attached to it. So build order becomes important with this cookbook. Your
+orchestration should build the servers, then the IP addresses should be set as
+attributes, then the master node should then be converged prior to converging the
+slave nodes.
 
 Attributes
 ------------
