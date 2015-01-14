@@ -17,9 +17,8 @@
 # limitations under the License.
 #
 
-node.default['percona']['server']['role'] = ['master']
+node.default['percona']['server']['includedir'] = '/etc/mysql/conf.d/'
 
-include_recipe 'chef-sugar'
 include_recipe 'percona::server'
 
 # creates unique serverid via ipaddress to an int
@@ -27,7 +26,16 @@ require 'ipaddr'
 serverid = IPAddr.new node['ipaddress']
 serverid = serverid.to_i
 
-passwords = EncryptedPasswords.new(node, node["percona"]["encrypted_data_bag"])
+passwords = EncryptedPasswords.new(node, node['percona']['encrypted_data_bag'])
+
+# adds directory if not created by service (only needed on rhel)
+if platform_family?('rhel')
+  directory '/etc/mysql/conf.d' do
+    owner 'mysql'
+    group 'mysql'
+    action :create
+  end
+end
 
 # drop master specific configuration file
 template "#{node['percona']['server']['includedir']}master.cnf" do
@@ -64,7 +72,5 @@ node['percona']['slaves'].each do |slave|
     notifies :run, 'execute[grant-slave]', :immediately
   end
 end
-
-node.set_unless['percona']['master'] = best_ip_for(node)
 
 tag('percona_master')

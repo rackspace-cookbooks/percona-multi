@@ -53,6 +53,7 @@ test/*
 features/*
 Guardfile
 Procfile
+Gemfile.lock
 
 # SCM #
 #######
@@ -71,6 +72,7 @@ Procfile
 #############
 cookbooks/*
 tmp
+Berksfile.lock
 
 # Cookbooks #
 #############

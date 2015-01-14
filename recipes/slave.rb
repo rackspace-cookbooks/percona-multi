@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+node.default['percona']['server']['includedir'] = '/etc/mysql/conf.d/'
+
 node.default['build-essential']['compile_time'] = true
 node.default['apt']['compile_time_update'] = true
 
@@ -24,8 +26,17 @@ include_recipe 'apt' if platform_family?('debian')
 include_recipe 'build-essential'
 include_recipe 'percona::server'
 
+# adds directory if not created by service (only needed on rhel)
+if platform_family?('rhel')
+  directory '/etc/mysql/conf.d' do
+    owner 'mysql'
+    group 'mysql'
+    action :create
+  end
+end
+
 # mysql gem must be installed at compile time to run replication script, but only on first run
-unless File.exist?("#{node["percona"]["server"]["datadir"]}/.replication")
+unless File.exist?("#{node['percona']['server']['datadir']}/.replication")
   case node['platform_family']
   when 'debian'
     potentially_at_compile_time do
@@ -46,7 +57,7 @@ require 'ipaddr'
 serverid = IPAddr.new node['ipaddress']
 serverid = serverid.to_i
 
-passwords = EncryptedPasswords.new(node, node["percona"]["encrypted_data_bag"])
+passwords = EncryptedPasswords.new(node, node['percona']['encrypted_data_bag'])
 
 # drop MySQL slave specific configuration file
 template "#{node['percona']['server']['includedir']}slave.cnf" do
@@ -64,7 +75,7 @@ host = node['percona']['master']
 user = node['percona']['server']['replication']['username']
 passwd = passwords.replication_password
 
-unless File.exist?("#{node["percona"]["server"]["datadir"]}/.replication")
+unless File.exist?("#{node['percona']['server']['datadir']}/.replication")
   if Chef::Config[:solo]
     Chef::Log.warn('This only works on a chef server not chef solo.')
   else
@@ -100,14 +111,14 @@ template '/root/change.master.sql' do
   password: passwords.replication_password
   )
   notifies :run, 'execute[set_master]', :immediately
-  not_if { File.exist?("#{node["percona"]["server"]["datadir"]}/.replication") }
+  not_if { File.exist?("#{node['percona']['server']['datadir']}/.replication") }
 end
 
 tag('percona_slave')
 
 # drop guard file to keep replication from resetting on every chef run
 template '.replication' do
-  path "#{node["percona"]["server"]["datadir"]}/.replication"
+  path "#{node['percona']['server']['datadir']}/.replication"
   source 'replication_flag.erb'
   owner 'root'
   group 'root'

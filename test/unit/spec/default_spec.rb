@@ -4,7 +4,7 @@ require_relative 'spec_helper'
 
 # this will pass on templatestack, fail elsewhere, forcing you to
 # write those chefspec tests you always were avoiding
-describe 'templatestack::default' do
+describe 'percona-multi::default' do
   before { stub_resources }
   supported_platforms.each do |platform, versions|
     versions.each do |version|
@@ -17,10 +17,6 @@ describe 'templatestack::default' do
 
         property = load_platform_properties(platform: platform, platform_version: version)
 
-        it "#{property} rspec authoriti" do
-          expect(chef_run).to write_log('lions, tigers and bears!')
-          expect(chef_run).to_not write_log('lions, tigers')
-        end
       end
     end
   end
