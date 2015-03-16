@@ -3,6 +3,10 @@ percona-multi CHANGELOG
 
 This file is used to list changes made in each version of the percona-multi cookbook.
 
+0.1.2
+-----
+Bump to restrict version of percona cookbook for issue https://github.com/phlipper/chef-percona/issues/266
+
 0.1.1
 -----
 
