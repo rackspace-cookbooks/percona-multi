@@ -17,9 +17,15 @@
 # limitations under the License.
 #
 
-node.default['percona']['server']['includedir'] = '/etc/mysql/conf.d/'
+node.default['percona']['server']['bind_address'] = '0.0.0.0'
 
 include_recipe 'percona::server'
+
+mysql2_chef_gem 'default' do
+  provider Chef::Provider::Mysql2ChefGem::Percona
+  action :install
+end
+
 
 # creates unique serverid via ipaddress to an int
 require 'ipaddr'
@@ -47,30 +53,11 @@ template "#{node['percona']['server']['includedir']}master.cnf" do
   )
   notifies :restart, 'service[mysql]', :immediately
 end
-execute 'grant-slave' do
-  command <<-EOH
-  /usr/bin/mysql -u root -p'#{passwords.root_password}' < /root/grant-slaves.sql
-  rm -f /root/grant-slaves.sql
-  EOH
-  action :nothing
-end
 
-# Grant replication user and control to slave(s)
-node['percona']['slaves'].each do |slave|
-  template "/root/grant-slaves.sql #{slave}" do
-    path '/root/grant-slaves.sql'
-    source 'grant.slave.erb'
-    owner 'root'
-    group 'root'
-    mode '0600'
-    variables(
-    user: node['percona']['server']['replication']['username'],
-    password: passwords.replication_password,
-    host: slave
-    )
-    action :create
-    notifies :run, 'execute[grant-slave]', :immediately
-  end
+perconam_slave_grants 'master' do
+  replpasswd passwords.replication_password
+  rootpasswd passwords.root_password
+  slave_ip node['percona']['slaves']
 end
 
 tag('percona_master')

@@ -11,3 +11,5 @@ default['percona']['replication']['templates']['slave.cnf']['source'] = 'slave.c
 
 default['percona']['replication']['templates']['master.cnf']['cookbook'] = 'percona-multi'
 default['percona']['replication']['templates']['master.cnf']['source'] = 'master.cnf.erb'
+
+default['percona']['server']['includedir'] = '/etc/mysql/conf.d/'

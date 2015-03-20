@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+node.default['percona']['server']['bind_address'] = '0.0.0.0'
 node.default['percona']['server']['includedir'] = '/etc/mysql/conf.d/'
 
 node.default['build-essential']['compile_time'] = true
@@ -25,6 +25,7 @@ node.default['apt']['compile_time_update'] = true
 include_recipe 'apt' if platform_family?('debian')
 include_recipe 'build-essential'
 include_recipe 'percona::server'
+include_recipe 'percona::client'
 
 # adds directory if not created by service (only needed on rhel)
 if platform_family?('rhel')
@@ -35,19 +36,9 @@ if platform_family?('rhel')
   end
 end
 
-# mysql gem must be installed at compile time to run replication script, but only on first run
+# mysql2 gem must be installed at compile time to run replication script, but only on first run
 unless File.exist?("#{node['percona']['server']['datadir']}/.replication")
-  case node['platform_family']
-  when 'debian'
-    potentially_at_compile_time do
-      package 'libmysqlclient-dev'
-    end
-  when 'rhel'
-    potentially_at_compile_time do
-      package 'mysql-devel'
-    end
-  end
-  chef_gem 'mysql' do
+  chef_gem 'mysql2' do
     action :install
   end
 end
