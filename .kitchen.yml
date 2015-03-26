@@ -20,13 +20,13 @@ provisioner:
     environment: _default
   attributes:
     percona:
-      skip_passwords: true
-      apt_keyserver: 'hkp://keys.gnupg.net:80'
       server:
         includedir: '/etc/mysql/conf.d/'
         debian_username: 'root'
       yum:
         gpgcheck: false
+      master: '192.168.0.21'
+      slaves: ['192.168.0.22']
 
 platforms:
   - name: ubuntu-14.04

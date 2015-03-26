@@ -1,7 +1,7 @@
 class Chef
   class Provider
     # Used to configure additional configuration files in Percona
-    class PerconamConfig < Chef::Provider::LWRPBase
+    class PerconaConfig < Chef::Provider::LWRPBase
 
       use_inline_resources if defined?(use_inline_resources)
 
@@ -10,8 +10,8 @@ class Chef
       end
 
       action :create do
-        template "#{new_resource.name} :create #{include_dir}/#{new_resource.config_name}.cnf" do
-          path "#{include_dir}/#{new_resource.config_name}.cnf"
+        template "#{new_resource.name} :create #{new_resource.include_dir}/#{new_resource.config_name}.cnf" do
+          path "#{new_resource.include_dir}/#{new_resource.config_name}.cnf"
           owner new_resource.owner
           group new_resource.group
           mode '0640'
@@ -23,8 +23,8 @@ class Chef
       end
 
       action :remove do
-        file "#{new_resource.name} :delete #{include_dir}/#{new_resource.config_name}.conf" do
-          path "#{include_dir}/#{new_resource.config_name}.conf"
+        file "#{new_resource.name} :delete #{new_resource.include_dir}/#{new_resource.config_name}.conf" do
+          path "#{new_resource.include_dir}/#{new_resource.config_name}.conf"
           action :delete
         end
       end

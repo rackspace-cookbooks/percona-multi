@@ -4,8 +4,8 @@ class Chef
     class PerconaRep
       def self.query(host, username, password, query)
         require 'rubygems'
-        require 'mysql'
-        m = Mysql.new(host, username, password)
+        require 'mysql2'
+        m = Mysql2.new(host, username, password)
         r = m.query(query)
         return r.fetch_hash
       end

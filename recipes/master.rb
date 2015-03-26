@@ -26,7 +26,6 @@ mysql2_chef_gem 'default' do
   action :install
 end
 
-
 # creates unique serverid via ipaddress to an int
 require 'ipaddr'
 serverid = IPAddr.new node['ipaddress']
@@ -44,17 +43,18 @@ if platform_family?('rhel')
 end
 
 # drop master specific configuration file
-template "#{node['percona']['server']['includedir']}master.cnf" do
+percona_config 'master replication' do
+  config_name 'master'
   cookbook node['percona']['replication']['templates']['master.cnf']['cookbook']
   source node['percona']['replication']['templates']['master.cnf']['source']
   variables(
-  cookbook_name: cookbook_name,
-  serverid: serverid
+    cookbook_name: cookbook_name,
+    serverid: serverid
   )
   notifies :restart, 'service[mysql]', :immediately
 end
 
-perconam_slave_grants 'master' do
+percona_slave_grants 'master' do
   replpasswd passwords.replication_password
   rootpasswd passwords.root_password
   slave_ip node['percona']['slaves']

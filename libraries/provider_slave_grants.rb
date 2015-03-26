@@ -1,8 +1,8 @@
 class Chef
   class Provider
     # Used to setup permissions for Percona replication user on master server
-    class PerconamSlaveGrants < Chef::Provider::LWRPBase
-      include PerconamCookbook::Helpers
+    class PerconaSlaveGrants < Chef::Provider::LWRPBase
+      include PerconaCookbook::Helpers
 
       use_inline_resources if defined?(use_inline_resources)
 

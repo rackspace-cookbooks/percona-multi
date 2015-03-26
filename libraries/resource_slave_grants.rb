@@ -1,8 +1,8 @@
 class Chef
   class Resource
     # Used to setup permissions for Percona replication user on master server
-    class PerconamSlaveGrants < Chef::Resource::LWRPBase
-      self.resource_name = :perconam_slave_grants
+    class PerconaSlaveGrants < Chef::Resource::LWRPBase
+      self.resource_name = :percona_slave_grants
       actions :create
       default_action :create
 
