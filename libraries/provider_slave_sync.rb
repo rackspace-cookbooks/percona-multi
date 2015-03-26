@@ -11,17 +11,13 @@ class Chef
       end
 
       action :create do
-        require 'rubygems'
-        require 'mysql2'
-
         unless ::File.exist?("#{new_resource.data_dir}/.replication")
           # Calls helpers to grab binlog and binpos from master server
           if Chef::Config[:solo]
             Chef::Log.warn('This feature only works on a chef server not chef solo.')
           else
-            fil, pos = masterinfo(new_resource.master_ip, new_resource.repluser, new_resource.replpasswd)
-            p fil
-            p pos
+            fil, pos = master_info(new_resource.master_ip, new_resource.repluser, new_resource.replpasswd)
+            Chef::Log.warn("Utilizing Binlog #{fil} and Position #{pos}"
           end
 
           # Sets master info and starts slave service

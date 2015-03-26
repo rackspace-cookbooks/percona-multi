@@ -18,7 +18,7 @@ module PerconaCookbook
       @local_client = nil
     end
 
-    def masterinfo(host, username, password)
+    def master_info(host, username, password)
       fil = ""
       pos = ""
       client = Mysql2::Client.new(:host => host, :username => username, :password => password)

@@ -43,6 +43,10 @@ platforms:
     - recipe[yum]
 
 suites:
+  - name: default
+    run_list:
+      - recipe[percona-multi::default]
+
   - name: master
     driver:
       vm_hostname: master-ubuntu14

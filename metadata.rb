@@ -1,5 +1,5 @@
 name             'percona-multi'
-maintainer       'Rackspace Hosting, Inc.'
+maintainer       'Rackspace'
 maintainer_email 'rackspace-cookbooks@rackspace.com'
 license          'Apache 2.0'
 description      'Provides Percona master/slave replication services'

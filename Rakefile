@@ -1,64 +1,72 @@
-# Encoding: utf-8
 require 'bundler/setup'
+require 'rspec/core/rake_task'
+require 'rubocop/rake_task'
+require 'foodcritic'
+require 'kitchen'
 
+# Style tests. Rubocop and Foodcritic
 namespace :style do
-  require 'rubocop/rake_task'
   desc 'Run Ruby style checks'
-  RuboCop::RakeTask.new(:ruby) do |task|
-    # see templatestack's .rubocop.yml for comparison
-    task.patterns = ['**/*.rb']
+  RuboCop::RakeTask.new(:ruby)
 
-    # only show the files with failures
-    task.formatters = ['files']
-
-    # abort rake on failure
-    task.fail_on_error = true
-  end
-
-  require 'foodcritic'
-  require 'foodcritic/rackspace/rules/version' # ensure loaded
   desc 'Run Chef style checks'
   FoodCritic::Rake::LintTask.new(:chef) do |t|
-    # 'search_gems' doesn't work, but :search_gems does
-    # rubocop:disable Style/HashSyntax
-    t.options = { :search_gems => true,
-                  :fail_tags => ['correctness','rackspace'],
-                  :chef_version => '11.6.0'
+    t.options = { search_gems: true,
+                  tags: %w(~rackspace-support),
+                  fail_tags: %w(correctness,rackspace)
                 }
-    # rubocop:enable Style/HashSyntax
   end
 end
 
 desc 'Run all style checks'
 task style: ['style:chef', 'style:ruby']
 
-require 'kitchen'
-desc 'Run Test Kitchen integration tests'
-task :integration do
-  Kitchen.logger = Kitchen.default_file_logger
-  sh 'kitchen test -c'
-end
-
-desc 'Destroy test kitchen instances'
-task :destroy do
-  Kitchen.logger = Kitchen.default_file_logger
-  Kitchen::Config.new.instances.each do |instance|
-    instance.destroy
-  end
-end
-
-require 'rspec/core/rake_task'
+# Rspec and ChefSpec
 desc 'Run ChefSpec unit tests'
-RSpec::Core::RakeTask.new(:spec) do |t, args|
+RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = 'test/unit'
 end
 
-# The default rake task should just run it all
-task default: ['style', 'spec', 'integration']
+# Integration tests - kitchen.ci
+desc 'Run Test Kitchen'
+namespace :integration do
+  Kitchen.logger = Kitchen.default_file_logger
 
-begin
-  require 'kitchen/rake_tasks'
-  Kitchen::RakeTasks.new
-  rescue LoadError
-    puts '>>>>> Kitchen gem not loaded, omitting tasks' unless ENV['CI']
+  desc 'Run kitchen test with Vagrant'
+  task :vagrant do
+    Kitchen::Config.new.instances.each do |instance|
+      instance.test(:always)
+    end
+  end
+
+  %w(verify destroy).each do |t|
+    desc "Run kitchen #{t} with cloud plugins"
+    namespace :cloud do
+      task t do
+        @loader = Kitchen::Loader::YAML.new(local_config: '.kitchen.cloud.yml')
+        config = Kitchen::Config.new(loader: @loader)
+        concurrency = config.instances.size
+        queue = Queue.new
+        config.instances.each { |i| queue << i }
+        concurrency.times { queue << nil }
+        threads = []
+        concurrency.times do
+          threads << Thread.new do
+            while instance = queue.pop
+              instance.send(t)
+            end
+          end
+        end
+        threads.map(&:join)
+      end
+    end
+  end
+
+  task cloud: ['cloud:verify', 'cloud:destroy']
 end
+
+desc 'Run all tests on CI Platform'
+task ci: ['style', 'spec', 'integration:cloud']
+
+# Default
+task default: ['style', 'spec', 'integration:vagrant']

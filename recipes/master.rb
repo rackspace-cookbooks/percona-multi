@@ -33,15 +33,6 @@ serverid = serverid.to_i
 
 passwords = EncryptedPasswords.new(node, node['percona']['encrypted_data_bag'])
 
-# adds directory if not created by service (only needed on rhel)
-if platform_family?('rhel')
-  directory '/etc/mysql/conf.d' do
-    owner 'mysql'
-    group 'mysql'
-    action :create
-  end
-end
-
 # drop master specific configuration file
 percona_config 'master replication' do
   config_name 'master'
