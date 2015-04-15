@@ -3,6 +3,8 @@ maintainer       'Rackspace'
 maintainer_email 'rackspace-cookbooks@rackspace.com'
 license          'Apache 2.0'
 description      'Provides Percona master/slave replication services'
+source_url       'https://github.com/rackspace-cookbooks/percona-multi'
+issues_url       'https://github.com/rackspace-cookbooks/percona-multi/issues'
 version          '1.0.0'
 
 depends 'build-essential'

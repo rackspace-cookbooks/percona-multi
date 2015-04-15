@@ -1,5 +1,5 @@
 default['percona']['master'] = nil
-default['percona']['slaves'] = %w()
+default['percona']['slaves'] = nil
 
 default['percona']['server']['replication']['username'] = 'replicant'
 

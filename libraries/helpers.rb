@@ -1,7 +1,6 @@
 module PerconaCookbook
   # Helper methods to be used in Percona-Multi cookbook libraries
   module Helpers
-
     def local_client
       @local_client ||=
         Mysql2::Client.new(
@@ -19,13 +18,13 @@ module PerconaCookbook
     end
 
     def master_info(host, username, password)
-      fil = ""
-      pos = ""
-      client = Mysql2::Client.new(:host => host, :username => username, :password => password)
-      results = client.query("show master status")
+      fil = ''
+      pos = ''
+      client = Mysql2::Client.new(host: host, username: username, password: password)
+      results = client.query('show master status')
       results.each do |row|
-        fil = row["File"]
-        pos = row["Position"]
+        fil = row['File']
+        pos = row['Position']
       end
       return fil, pos
     end

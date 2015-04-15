@@ -11,6 +11,8 @@ class Chef
       end
 
       action :create do
+        require 'rubygems'
+        require 'mysql2'
         begin
           new_resource.slave_ip.each do |slave|
             grant_repl = "GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '#{new_resource.user}"

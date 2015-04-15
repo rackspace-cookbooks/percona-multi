@@ -8,7 +8,7 @@ class Chef
 
       attribute :user, kind_of: String, default: 'replicant'
       attribute :replpasswd, kind_of: String, required: true
-      attribute :host, kind_of: String, default: '127.0.0.1'
+      attribute :host, kind_of: String, default: 'localhost'
       attribute :root_user, kind_of: String, default: 'root'
       attribute :rootpasswd, kind_of: String, required: true
       attribute :slave_ip, kind_of: Array, required: true
