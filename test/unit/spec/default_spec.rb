@@ -2,10 +2,8 @@
 
 require_relative 'spec_helper'
 
-describe 'percona-multi::master' do
-  before do
-    allow(::File).to receive(:symlink?).and_return(false)
-  end
+describe 'percona-multi::default' do
+  before { stub_resources }
 
   platforms = {
     'ubuntu' => ['12.04', '14.04'],
