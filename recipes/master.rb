@@ -17,9 +17,14 @@
 # limitations under the License.
 #
 
-node.default['percona']['server']['includedir'] = '/etc/mysql/conf.d/'
+node.default['percona']['server']['bind_address'] = '0.0.0.0'
 
 include_recipe 'percona::server'
+
+mysql2_chef_gem 'default' do
+  provider Chef::Provider::Mysql2ChefGem::Percona
+  action :install
+end
 
 # creates unique serverid via ipaddress to an int
 require 'ipaddr'
@@ -28,49 +33,22 @@ serverid = serverid.to_i
 
 passwords = EncryptedPasswords.new(node, node['percona']['encrypted_data_bag'])
 
-# adds directory if not created by service (only needed on rhel)
-if platform_family?('rhel')
-  directory '/etc/mysql/conf.d' do
-    owner 'mysql'
-    group 'mysql'
-    action :create
-  end
-end
-
 # drop master specific configuration file
-template "#{node['percona']['server']['includedir']}master.cnf" do
+percona_config 'master replication' do
+  config_name 'master'
   cookbook node['percona']['replication']['templates']['master.cnf']['cookbook']
   source node['percona']['replication']['templates']['master.cnf']['source']
   variables(
-  cookbook_name: cookbook_name,
-  serverid: serverid
+    cookbook_name: cookbook_name,
+    serverid: serverid
   )
   notifies :restart, 'service[mysql]', :immediately
 end
-execute 'grant-slave' do
-  command <<-EOH
-  /usr/bin/mysql -u root -p'#{passwords.root_password}' < /root/grant-slaves.sql
-  rm -f /root/grant-slaves.sql
-  EOH
-  action :nothing
-end
 
-# Grant replication user and control to slave(s)
-node['percona']['slaves'].each do |slave|
-  template "/root/grant-slaves.sql #{slave}" do
-    path '/root/grant-slaves.sql'
-    source 'grant.slave.erb'
-    owner 'root'
-    group 'root'
-    mode '0600'
-    variables(
-    user: node['percona']['server']['replication']['username'],
-    password: passwords.replication_password,
-    host: slave
-    )
-    action :create
-    notifies :run, 'execute[grant-slave]', :immediately
-  end
+percona_slave_grants 'master' do
+  replpasswd passwords.replication_password
+  rootpasswd passwords.root_password
+  slave_ip node['percona']['slaves']
 end
 
 tag('percona_master')

@@ -1,56 +1,18 @@
 ---
-################################################################################
-# Any local customizations should be placed inside the .kitchen.local.yml, which
-# will not be checked in or overwritten. You may also use ~/.kitchen/config.yml
-# or environment variables like VAGRANT_DEFAULT_PROVIDER. Anything in those will
-# take precedence over anything set in `.kitchen.yml`.
-################################################################################
 driver:
   name: vagrant
-  customize:
-    memory: 2048
-    cpus: 2
-
-driver_config:
-  require_chef_omnibus: latest
 
 provisioner:
-  name: chef_solo
+  name: chef_zero
   client_rb:
     environment: _default
   attributes:
-    openssh:
-      server:
-        password_authentication: 'yes'
-        permit_root_login: 'yes'
-    cloud:
-      public_ipv4: '127.0.0.1'
-    authorization:
-      sudo:
-        users: ['vagrant']
-        passwordless: true
-    platformstack:
-      cloud_backup:
-        enabled: false
-      cloud_monitoring:
-        enabled: false
-      omnibus_updater:
-        enabled: false
-      iptables:
-        allow_ssh_from_world: true
-    rackspace:
-      cloud_credentials:
-        username: 'racker'
-        api_key: 'sekrit'
     percona:
-      master: '1.2.3.4'
-      slaves: ['5.6.7.8']
-      skip_passwords: true
-      apt_keyserver: 'hkp://keys.gnupg.net'
       server:
         includedir: '/etc/mysql/conf.d/'
-        replication:
-          password: 'test123'
+        debian_username: 'root'
+      yum:
+        gpgcheck: false
 
 platforms:
   - name: ubuntu-14.04
@@ -59,15 +21,134 @@ platforms:
   - name: ubuntu-12.04
     run_list:
     - recipe[apt]
-  - name: centos-6.5
+  - name: centos-6.6
+    run_list:
+    - recipe[yum]
+  - name: centos-7.0
     run_list:
     - recipe[yum]
 
 suites:
-  - name: master
-    run_list: recipe[percona-multi::master]
-    attributes:
+  - name: default
+    data_bag_path: 'test/integration/default/data_bags/passwords'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    run_list:
+      - recipe[percona-multi::default]
 
-  - name: slave
-    run_list: recipe[percona-multi::slave]
+  - name: mu14
+    data_bag_path: 'test/integration/default/data_bags/passwords'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    driver:
+      vm_hostname: master-ubuntu14
+      network:
+      - ['private_network', {ip: '192.168.0.21'}]
+    run_list:
+    - recipe[percona-multi::master]
+    excludes: ['ubuntu-12.04', 'centos-6.6', 'centos-7.0']
     attributes:
+      percona:
+        master: '192.168.0.21'
+        slaves: ['192.168.0.22']
+
+  - name: su14
+    data_bag_path: 'test/integration/default/data_bags/passwords'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    driver:
+      vm_hostname: slave-ubuntu14
+      network:
+      - ['private_network', {ip: '192.168.0.22'}]
+    run_list:
+    - recipe[percona-multi::slave]
+    excludes: ['ubuntu-12.04', 'centos-6.6', 'centos-7.0']
+    attributes:
+      percona:
+        master: '192.168.0.21'
+        slaves: ['192.168.0.22']
+
+  - name: mu12
+    data_bag_path: 'test/integration/default/data_bags/passwords'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    driver:
+      vm_hostname: master-ubuntu12
+      network:
+      - ['private_network', {ip: '192.168.0.23'}]
+    run_list:
+    - recipe[percona-multi::master]
+    excludes: ['ubuntu-14.04', 'centos-6.6', 'centos-7.0']
+    attributes:
+      percona:
+        master: '192.168.0.23'
+        slaves: ['192.168.0.24']
+
+  - name: su12
+    data_bag_path: 'test/integration/default/databags/mysql'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    driver:
+      vm_hostname: slave-ubuntu12
+      network:
+      - ['private_network', {ip: '192.168.0.24'}]
+    run_list:
+    - recipe[percona-multi::slave]
+    excludes: ['ubuntu-14.04', 'centos-6.6', 'centos-7.0']
+    attributes:
+      percona:
+        master: '192.168.0.23'
+        slaves: ['192.168.0.24']
+
+  - name: mc6
+    data_bag_path: 'test/integration/default/data_bags/passwords'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    driver:
+      vm_hostname: master-cent6
+      network:
+      - ['private_network', {ip: '192.168.0.25'}]
+    run_list:
+    - recipe[percona-multi::master]
+    excludes: ['ubuntu-12.04', 'ubuntu-14.04', 'centos-7.0']
+    attributes:
+      percona:
+        master: '192.168.0.25'
+        slaves: ['192.168.0.26']
+
+  - name: sc6
+    driver:
+      vm_hostname: slave-cent6
+      network:
+      - ['private_network', {ip: '192.168.0.26'}]
+    run_list:
+    - recipe[percona-multi::slave]
+    excludes: ['ubuntu-12.04', 'ubuntu-14.04', 'centos-7.0']
+    attributes:
+      percona:
+        master: '192.168.0.25'
+        slaves: ['192.168.0.26']
+
+  - name: mc7
+    data_bag_path: 'test/integration/default/data_bags/passwords'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    driver:
+      vm_hostname: master-cent7
+      network:
+      - ['private_network', {ip: '192.168.0.27'}]
+    run_list:
+    - recipe[percona-multi::master]
+    excludes: ['ubuntu-12.04', 'centos-6.6', 'ubuntu-14.04']
+    attributes:
+      percona:
+        master: '192.168.0.27'
+        slaves: ['192.168.0.28']
+
+  - name: sc7
+    data_bag_path: 'test/integration/default/data_bags/passwords'
+    encrypted_data_bag_secret_key_path: 'test/integration/default/test_data_bag_secret'
+    driver:
+      vm_hostname: slave-cent7
+      network:
+      - ['private_network', {ip: '192.168.0.28'}]
+    run_list:
+    - recipe[percona-multi::slave]
+    excludes: ['ubuntu-12.04', 'centos-6.5', 'ubuntu-14.04']
+    attributes:
+      percona:
+        master: '192.168.0.27'
+        slaves: ['192.168.0.28']
